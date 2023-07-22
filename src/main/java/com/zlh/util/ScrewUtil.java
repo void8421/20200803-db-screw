@@ -6,30 +6,23 @@ import cn.smallbun.screw.core.engine.EngineFileType;
 import cn.smallbun.screw.core.engine.EngineTemplateType;
 import cn.smallbun.screw.core.execute.DocumentationExecute;
 import cn.smallbun.screw.core.process.ProcessConfig;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author LinHao Zhou
- * @description
- *  screw使用方式二:代码执行
- *  screw工具类，自动生成数据库文档
+ * @description screw使用方式二:代码执行
+ * screw工具类，自动生成数据库文档
  * @datetime 2020/8/3 17:50
  */
 public class ScrewUtil {
 
-    @Autowired
-    ApplicationContext applicationContext;
-
     @Test
     public void contextLoads() {
-        DataSource dataSourceMysql = applicationContext.getBean(DataSource.class);
         // 生成文件配置
         EngineConfig engineConfig = EngineConfig.builder()
                 // 生成文件路径，自己mac本地的地址，这里需要自己更换下路径
@@ -37,14 +30,18 @@ public class ScrewUtil {
                 // 打开目录
                 .openOutputDir(false)
                 // 文件类型
-                .fileType(EngineFileType.MD)
+                .fileType(EngineFileType.HTML)
                 // 生成模板实现
-                .produceType(EngineTemplateType.freemarker).build();
+                .produceType(EngineTemplateType.velocity).build();
         // 生成文档配置（包含以下自定义版本号、描述等配置连接）
+        HikariConfig hikariConfig = new HikariConfig();
+        hikariConfig.setUsername("root");
+        hikariConfig.setPassword("root");
+        hikariConfig.setJdbcUrl("jdbc:mysql://localhost:3306/db_test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai");
         Configuration config = Configuration.builder()
-                .version("1.0.3")
+                .version("1.0.1")
                 .description("生成文档信息描述")
-                .dataSource(dataSourceMysql)
+                .dataSource(new HikariDataSource(hikariConfig))
                 .engineConfig(engineConfig)
                 .produceConfig(getProcessConfig())
                 .build();
@@ -59,23 +56,23 @@ public class ScrewUtil {
      */
     public static ProcessConfig getProcessConfig() {
         // 忽略表名
-        List<String> ignoreTableName = Arrays.asList("a", "test_group");
+//        List<String> ignoreTableName = Arrays.asList("a", "test_group");
         // 忽略表前缀，如忽略a开头的数据库表
-        List<String> ignorePrefix = Arrays.asList("a", "t");
+//        List<String> ignorePrefix = Arrays.asList("a", "t");
         // 忽略表后缀
-        List<String> ignoreSuffix = Arrays.asList("_test", "czb_");
+//        List<String> ignoreSuffix = Arrays.asList("_test", "czb_");
         return ProcessConfig.builder()
                 //根据名称指定表生成
-                .designatedTableName(Arrays.asList("fire_user"))
+                .designatedTableName(Arrays.asList("tb_user"))
                 //根据表前缀生成
                 .designatedTablePrefix(new ArrayList<>())
                 //根据表后缀生成
                 .designatedTableSuffix(new ArrayList<>())
                 //忽略表名
-                .ignoreTableName(ignoreTableName)
+                .ignoreTableName(new ArrayList<>())
                 //忽略表前缀
-                .ignoreTablePrefix(ignorePrefix)
+                .ignoreTablePrefix(new ArrayList<>())
                 //忽略表后缀
-                .ignoreTableSuffix(ignoreSuffix).build();
+                .ignoreTableSuffix(new ArrayList<>()).build();
     }
 }
